@@ -35,17 +35,13 @@ let addButton = document.getElementById("addToCart");
 let color = document.getElementById("colors");
 let quantity = document.getElementById("quantity");
 
-//Evénement au click sur le bouton
+//Evénement au click sur le bouton pour ajout produit au panier
 
-addButton.addEventListener('click', e => {
-    if (color.value != "" && quantity.value != 0 && quantity.value < 100) {
-        let productChoice = {
-            id: productId,
-            color: color.value,
-            quantity: quantity.value,
-        }
-        const addToCart = (productChoice);
-        console.log(productChoice);
+addButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    //Si la quantité est à 0
+    if (quantity.value == 0){
+        alert("Veuillez renseigner une quantité")
     }
     //Si aucune couleur n'est sélectionnée
     else if (color.value === "") {
@@ -55,4 +51,41 @@ addButton.addEventListener('click', e => {
     else if (quantity.value > 100) {
         alert("Vous ne pouvez pas commander plus de 100 produits")
     }
-})
+    //Si choix produit OK on récupère les informations id, color et quantity du produit
+    else {
+        const productChoice = {
+            id: productId,
+            color: color.value,
+            quantity: quantity.value
+        };
+        console.log(productChoice);
+        addToCart(productChoice); //Appel de la fonction pour l'ajout du produit
+
+        //-------------------------------Enregistrement produit dans le localStorage-------------------------------
+        //Fonction pour la récupération du panier dans le localStorage
+        function getCart() {
+            let cart = localStorage.getItem("cart");
+            if (cart == null) {
+                return [];
+            }
+            else {
+                return JSON.parse(cart);
+            }
+        }
+
+            //Fonction ajout article supplémentaire au panier
+    
+        function addToCart(productChoice) {
+            let cart = getCart();
+            cart.push(productChoice);
+            saveCart(cart);
+            alert("Produit ajouté au panier");
+        }
+
+            //Fonction sauvegarde du panier
+
+        function saveCart(cart) {
+            localStorage.setItem("cart", JSON.stringify(cart));
+        } 
+    }
+});
