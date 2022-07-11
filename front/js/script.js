@@ -17,9 +17,9 @@ fetch("http://localhost:3000/api/products")
                 })
                 .catch((error) => {
                     alert("Produits momentanément indisponible")
-                })
+                });
         }
     })
     .catch((error) => {
         alert("Le serveur ne répond pas")
-    })
+    });

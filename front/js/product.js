@@ -1,4 +1,4 @@
-//Récupération de l'id produit page en cours
+//Récupération de l'id du produit de la page en cours
 
 let urlPage = window.location.href;
 
@@ -29,19 +29,54 @@ fetch("http://localhost:3000/api/products/" + productId)
         alert("Le serveur ne répond pas")
     })
 
-//Eléments du DOM
+//Eléments à récupérer dans le DOM
 
 let addButton = document.getElementById("addToCart");
 let color = document.getElementById("colors");
 let quantity = document.getElementById("quantity");
 
-//Evénement au click sur le bouton pour ajout produit au panier
+//-------------------------------Fonctions liées au localStorage pour stockage données panier------------------------------
+
+    //Fonction de récupération du panier dans le localStorage
+function getCart() {
+    let cart = localStorage.getItem("cart");
+        if (cart == null) {
+            return [];
+        }
+        else {
+            return JSON.parse(cart);
+        }
+    }
+
+    //Fonction ajout d'un article au panier en vérifiant si le même produit avec le même colori existe déjà
+function addToCart(productChoice) {
+    let cart = getCart();
+    let foundSameProduct = cart.find(product => product.id == productChoice.id && product.color == productChoice.color);
+        //Si il existe déjà un produit identique dans le panier on ajoute la quantité supplémentaire à l'article
+        if(foundSameProduct != undefined) {
+            foundSameProduct.quantity = parseInt(foundSameProduct.quantity) + parseInt(productChoice.quantity);
+        }
+        //Sinon on ajoute le nouveau produit
+        else {
+            cart.push(productChoice);
+        }
+        saveCart(cart);
+        alert("Produit ajouté au panier");
+    }
+
+    //Fonction de sauvegarde du panier dans le localStorag
+function saveCart(cart) {
+    localStorage.setItem("cart", JSON.stringify(cart));
+} 
+
+
+//----------------------Evénement au click sur le bouton pour ajout produit au panier------------------------
 
 addButton.addEventListener('click', (event) => {
     event.preventDefault();
     //Si la quantité est à 0
-    if (quantity.value == 0){
-        alert("Veuillez renseigner une quantité")
+    if (quantity.value <= 0){
+        alert("Veuillez renseigner une quantité entre 1 et 100")
     }
     //Si aucune couleur n'est sélectionnée
     else if (color.value === "") {
@@ -56,44 +91,8 @@ addButton.addEventListener('click', (event) => {
         const productChoice = {
             id: productId,
             color: color.value,
-            quantity: quantity.value
+            quantity: parseInt(quantity.value)
         };
-        console.log(productChoice);
         addToCart(productChoice); //Appel de la fonction pour l'ajout du produit au panier
-
-        //-------------------------------Enregistrement produit dans le localStorage-------------------------------
-
-        //Fonction pour la récupération du panier dans le localStorage
-        function getCart() {
-            let cart = localStorage.getItem("cart");
-            if (cart == null) {
-                return [];
-            }
-            else {
-                return JSON.parse(cart);
-            }
-        }
-
-            //Fonction ajout article supplémentaire au panier en vérifiant si le même produit avec le même colori existe déjà
-    
-        function addToCart(productChoice) {
-            let cart = getCart();
-            let foundSameProduct = cart.find(productChoiceId => productChoiceId.id == productChoice.id) && cart.find(productChoiceColor => productChoiceColor.color == productChoice.color);
-            if(foundSameProduct != undefined) {
-                foundSameProduct.quantity = parseInt(foundSameProduct.quantity) + parseInt(productChoice.quantity);
-            }
-            else {
-                productChoice.quantity = quantity.value; 
-                cart.push(productChoice);
-            }
-            saveCart(cart);
-            alert("Produit ajouté au panier");
-        }
-
-            //Fonction sauvegarde du panier dans le localStorage
-
-        function saveCart(cart) {
-            localStorage.setItem("cart", JSON.stringify(cart));
-        } 
     }
 });
