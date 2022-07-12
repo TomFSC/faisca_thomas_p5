@@ -64,7 +64,7 @@ function addToCart(productChoice) {
         alert("Produit ajouté au panier");
     }
 
-    //Fonction de sauvegarde du panier dans le localStorag
+    //Fonction de sauvegarde du panier dans le localStorage
 function saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
 } 
