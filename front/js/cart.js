@@ -6,7 +6,7 @@ function getCart() {
 };
 
 //Fonction de sauvegarde du panier dans le localStorage
-function saveCart() {
+function saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
 };
 
@@ -16,7 +16,7 @@ function totalProductInCart() {
     getCart();
     let numberOfProducts = 0;
     for (let productInCart of cart) {
-        numberOfProducts += productInCart.quantity;
+        numberOfProducts += parseInt(productInCart.quantity);
     }
     return numberOfProducts;
 };
@@ -53,7 +53,7 @@ function changeProductQuantity(id, color, newQuantity) {
     foundSameProduct = cart.find(product => product.id == id && product.color == color);
     if (foundSameProduct != undefined) {
         foundSameProduct.quantity = newQuantity;
-        saveCart();
+        saveCart(cart);
         alert("La quantité a bien été modifiée");
         window.location.href ="cart.html";
         if (newQuantity == 0) {
@@ -134,8 +134,129 @@ for (let productChoice of cart) {
                             let color = article.getAttribute("data-color");
                             removeProduct(id, color);
                         })
-                    });
-                        
+                    });                        
         });
     })
 };
+
+//---------VALIDATION ET ENVOI DU FORMULAIRE----------
+//Déclaration des variables et éléments du DOM pour formulaire contact clients
+
+let firstName = document.getElementById("firstName");
+let lastName = document.getElementById("lastName");
+let address = document.getElementById("address");
+let city = document.getElementById("city");
+let email = document.getElementById("email");
+let newOrder = document.getElementById("order");
+
+//Vérification des données du formulaire
+
+//RegExp pour prénom
+let firstNameRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+
+//RegExp pour le nom
+let lastNameRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+
+//RegExp pour la ville
+let cityRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+
+//Validation de l'e-mail
+email.addEventListener('change', function() {
+    //RegExp pour email
+    let emailRegExp = /^[a-zA-Z][\w]{1,25}[@]{1}[\w]{1,25}[.]{1}[a-z]{1,10}$/g;
+    //Test de la RegExp
+    let testEmail = emailRegExp.test(email.value);
+    let errorMessage = document.getElementById("emailErrorMsg");
+    if(testEmail == false) {
+        email.style.color = "red";
+        errorMessage.innerHTML = "Adresse E-mail non valide" ;
+    }
+    else {
+        email.style.color = "green";
+        errorMessage.innerHTML = "";
+    }
+});
+
+//Validation du prénom
+firstName.addEventListener('change', function() {
+    let testFirstName = firstNameRegExp.test(firstName.value);
+    let errorMessage = document.getElementById("firstNameErrorMsg");
+    if(testFirstName === false) {
+        firstName.style.color = "red";
+        errorMessage.innerHTML = "Le prénom ne doit pas contenir de chiffre ou de caractères spéciaux";
+    }
+    else {
+        firstName.style.color = "green";
+        errorMessage.innerHTML = "";
+    }
+    console.log(testFirstName);
+});
+
+//Validation du nom
+lastName.addEventListener('change', function() {
+    let testLastName = lastNameRegExp.test(lastName.value);
+    let errorMessage = document.getElementById("lastNameErrorMsg");
+    if(testLastName === false) {
+        lastName.style.color = "red";
+        errorMessage.innerHTML = "Le nom ne doit pas contenir de chiffre ou de caractères spéciaux";
+    }
+    else {
+        lastName.style.color = "green";
+        errorMessage.innerHTML = "";
+    }
+});
+
+//Input adresse
+address.addEventListener('change', function() {
+        address.style.color = "green";
+});
+
+//Validation de la ville
+city.addEventListener('change', function() {
+    let testCity = cityRegExp.test(city.value);
+    let errorMessage = document.getElementById("cityErrorMsg");
+    if(testCity === false) {
+        city.style.color = "red";
+        errorMessage.innerHTML = "La ville en doit pas contenir de chiffre ou de caractères spéciaux";
+    }
+    else {
+        city.style.color = "green";
+        errorMessage.innerHTML = "";
+    }
+})
+
+
+//Fonction pour la création de l'objet contact/produits
+function createOrderContact() {   
+    //On créé un tableau pour récupérer les "id" des produits du panier
+    let products = [];
+    //On créé un tableau contact pour récupérer les données clients
+    let contact = {
+        firstName: firstName.value,
+        lastName: lastName.value,
+        address: address.value,
+        city: city.value,
+        email: email.value,
+    };
+    console.log(contact);
+    //On parcourt le panier pour trouver les "id"
+    for(let productsList of cart) {
+        let item = cart.find(p => p.id == productsList.id);
+        if(item != undefined) {
+            //On envoie les id produits dans le tableau "products"
+            products.push(productsList.id);
+        }
+        else {
+            alert("Votre panier est vide");
+        }
+    };
+    console.log(products);
+    //On créé notre objet au format JSON (contenant les 2 tableaux contact et products liés) pour envoi à l'API
+    let orderData = JSON.stringify({contact, products});
+    console.log(orderData);
+};
+
+
+
+
+
