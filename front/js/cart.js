@@ -30,13 +30,10 @@ function removeProduct (id, color) {
         productColor: color
     };
     //On créé un nouveau panier qui ne contiendra que les élément du localStorage ayant un id et une couleur différente
-    const newCart = cart.filter((item) => {
-        for (let key in delectedProduct) {
-            if (item.id == delectedProduct[key] && item.color == delectedProduct.productColor)
-            return false;
-        }
-        return true;
-    });
+    const newCart = cart.filter((item) => !(
+        item.id == delectedProduct.productId && item.color == delectedProduct.productColor
+        )
+    );
     //On sauvegarde notre nouveau panier en gardant la même clé que l'ancien
     localStorage.setItem("cart", JSON.stringify(newCart));
     alert("Votre produit à été retiré du panier");
@@ -49,21 +46,27 @@ function removeProduct (id, color) {
 
 //Changement de la quantité produits dans le panier
 function changeProductQuantity(id, color, newQuantity) {
-    getCart();
-    foundSameProduct = cart.find(product => product.id == id && product.color == color);
-    if (foundSameProduct != undefined) {
-        foundSameProduct.quantity = newQuantity;
-        saveCart(cart);
-        alert("La quantité a bien été modifiée");
-        window.location.href ="cart.html";
-        if (newQuantity == 0) {
-            removeProduct(id, color);
+    getCart(cart);
+    if(newQuantity < 0 || newQuantity > 100) {
+        alert("La quantitée doit être comprise entre 1 et 100");
+    }
+    else if (newQuantity == 0) {
+        removeProduct(id, color);
+    }
+    
+    else {
+        foundSameProduct = cart.find(product => product.id == id && product.color == color);
+        if(foundSameProduct != undefined) {
+            foundSameProduct.quantity = newQuantity;
+            alert("La quantité a bien été modifiée");
         }
+        saveCart(cart);
     }
 };
 
+//On récupère les "totalProductPrice" de chaque produit du panier
+let totalPrice = [];
 //Fonction pour le calcul du prix total du panier
-let totalPrice = []; //On récupère les "totalProductPrice" de chaque produit du panier
 function totalCartPrice() {    
     const calcTotal = (accumulator, currentValue) => accumulator + currentValue;
     const total = totalPrice.reduce(calcTotal);
@@ -78,7 +81,6 @@ for (let productChoice of cart) {
     .then((response) => {
         response.json()
         .then((product) => {
-            //Déclaration prix total par article
                     const totalProductPrice = parseInt(productChoice.quantity) * parseInt(product.price);
                     totalPrice.push(totalProductPrice);
                     //Affichage des articles dans le DOM
@@ -90,7 +92,7 @@ for (let productChoice of cart) {
                     <div class="cart__item__content__description">
                     <h2>${product.name}</h2>
                     <p>${productChoice.color}</p>
-                    <p>${totalProductPrice}€</p>
+                    <p>${product.price}€</p>
                     </div>
                     <div class="cart__item__content__settings">
                     <div class="cart__item__content__settings__quantity">
@@ -105,6 +107,7 @@ for (let productChoice of cart) {
                     </article>`
                     //Ajout de la quantité totale d'articles du panier 
                     document.getElementById("totalQuantity").innerHTML = parseInt(totalProductInCart());
+                    //Ajout du prix total du panier
                     document.getElementById("totalPrice").innerHTML = totalCartPrice();
                     //On récupère l'élément <input> dans le domaine 
                     let input = document.getElementsByClassName('itemQuantity');
@@ -115,13 +118,7 @@ for (let productChoice of cart) {
                             let id = article.getAttribute("data-id");
                             let color = article.getAttribute("data-color");
                             let newQuantity = quantity.value;
-                            if (newQuantity < 0 || newQuantity > 100) {
-                                alert("La quantitée doit être comprise entre 1 et 100");
-                                window.location.href ="cart.html";
-                            }
-                            else {
-                                changeProductQuantity(id, color, newQuantity);
-                            }
+                            changeProductQuantity(id, color, newQuantity);
                         });
                     });
                     //On récupère l'élément <p>supprimer</p> dans le DOM 
@@ -134,7 +131,8 @@ for (let productChoice of cart) {
                             let color = article.getAttribute("data-color");
                             removeProduct(id, color);
                         })
-                    });                        
+                    });
+                                         
         });
     })
 };
@@ -152,18 +150,18 @@ let newOrder = document.getElementById("order");
 //Vérification des données du formulaire
 
 //RegExp pour prénom
-let firstNameRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+let firstNameRegExp = /^[a-zA-Z]{1,50}/g;
 
 //RegExp pour le nom
-let lastNameRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+let lastNameRegExp = firstNameRegExp;
 
 //RegExp pour la ville
-let cityRegExp = /^[a-zA-Z-\s?]{1,50}/g;
+let cityRegExp = firstNameRegExp;
 
 //Validation de l'e-mail
 email.addEventListener('change', function() {
     //RegExp pour email
-    let emailRegExp = /^[a-zA-Z][\w]{1,25}[@]{1}[\w]{1,25}[.]{1}[a-z]{1,10}$/g;
+    let emailRegExp = /^[a-zA-Z][\w]{1,25}@[\w]{1,25}\.[a-z]{1,10}$/g;
     //Test de la RegExp
     let testEmail = emailRegExp.test(email.value);
     let errorMessage = document.getElementById("emailErrorMsg");
@@ -227,7 +225,7 @@ city.addEventListener('change', function() {
 
 
 //Fonction pour la création de l'objet contact/produits
-function createOrderContact() {   
+function createOrderData() {   
     //On créé un tableau pour récupérer les "id" des produits du panier
     let products = [];
     //On créé un tableau contact pour récupérer les données clients
@@ -252,10 +250,28 @@ function createOrderContact() {
     };
     console.log(products);
     //On créé notre objet au format JSON (contenant les 2 tableaux contact et products liés) pour envoi à l'API
-    let orderData = JSON.stringify({contact, products});
-    console.log(orderData);
+    return orderData = JSON.stringify({contact, products});
 };
+//Au click sur le boutton commander on appelle la fonction createOrderData et on envoie notre objet dataOrder a l'API
+newOrder.addEventListener('click', (e) => {
+    e.preventDefault();
+    createOrderData();
 
+    fetch("http://localhost:3000/api/products/order", {
+        method: "POST",
+        headers: {
+            "Content-type": "application/json",
+        },
+        body: orderData,
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        //On efface les données du localStorage
+        localStorage.clear();
+        //On renvoie vers la page de confirmation en lui ajoutant le numéro de commande
+        window.location.href = "./confirmation.html?id=" + data.orderId;
+    })
+});
 
 
 
