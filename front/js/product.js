@@ -1,7 +1,6 @@
 //Récupération de l'id du produit de la page en cours
 
 let urlPage = window.location.href;
-
 let url = new URL(urlPage);
 let productId = url.searchParams.get ("id");
 
@@ -19,15 +18,16 @@ fetch("http://localhost:3000/api/products/" + productId)
                     const colorsList = product.colors;
                     for(let color of colorsList) {
                         document.getElementById("colors").innerHTML += `<option value="${color}">${color}</option>`
-                    }
-            })
+                    };
+                })
             .catch((error) => {
                 alert("Produit indisponible")
-            })
-    }})
+            });
+        };
+    })
     .catch((error) => {
         alert("Le serveur ne répond pas")
-    })
+    });
 
 //Eléments à récupérer dans le DOM
 
@@ -37,7 +37,7 @@ let quantity = document.getElementById("quantity");
 
 //-------------------------------Fonctions liées au localStorage pour stockage données panier------------------------------
 
-    //Fonction de récupération du panier dans le localStorage
+//Fonction de récupération du panier dans le localStorage
 function getCart() {
     let cart = localStorage.getItem("cart");
         if (cart == null) {
@@ -46,9 +46,9 @@ function getCart() {
         else {
             return JSON.parse(cart);
         }
-    }
+};
 
-    //Fonction ajout d'un article au panier en vérifiant si le même produit avec le même colori existe déjà
+//Fonction ajout d'un article au panier en vérifiant si le même produit avec le même colori existe déjà
 function addToCart(productChoice) {
     let cart = getCart();
     let foundSameProduct = cart.find(product => product.id == productChoice.id && product.color == productChoice.color);
@@ -62,12 +62,12 @@ function addToCart(productChoice) {
         }
         saveCart(cart);
         alert("Produit ajouté au panier");
-    }
+};
 
-    //Fonction de sauvegarde du panier dans le localStorage
+//Fonction de sauvegarde du panier dans le localStorage
 function saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
-} 
+}; 
 
 
 //----------------------Evénement au click sur le bouton pour ajout produit au panier------------------------

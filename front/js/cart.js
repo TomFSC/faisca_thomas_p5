@@ -1,21 +1,21 @@
-
+//---------------Déclaration des différentes fonctions utilisées-------------
 
 //Récupération du panier dans le localStorage
 function getCart() {
     return JSON.parse(localStorage.getItem("cart"));
 };
+let cart = getCart();
 
 //Fonction de sauvegarde du panier dans le localStorage
 function saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
 };
 
-
 //Fonction pour calculer le total des articles au panier
 function totalProductInCart() {
     getCart();
     let numberOfProducts = 0;
-    for (let productInCart of cart) {
+    for(let productInCart of cart) {
         numberOfProducts += parseInt(productInCart.quantity);
     }
     return numberOfProducts;
@@ -39,21 +39,17 @@ function removeProduct (id, color) {
     alert("Votre produit à été retiré du panier");
     window.location.href ="cart.html";
 };
-        
-            
-        
 
-
-//Changement de la quantité produits dans le panier
+//Fonction pour le changement de quantité produits dans le panier
 function changeProductQuantity(id, color, newQuantity) {
     getCart(cart);
     if(newQuantity < 0 || newQuantity > 100) {
         alert("La quantitée doit être comprise entre 1 et 100");
+        window.location.href = "cart.html";
     }
-    else if (newQuantity == 0) {
+    else if(newQuantity == 0) {
         removeProduct(id, color);
     }
-    
     else {
         foundSameProduct = cart.find(product => product.id == id && product.color == color);
         if(foundSameProduct != undefined) {
@@ -73,37 +69,41 @@ function totalCartPrice() {
     return total;
 };
 
-//On parcours le panier pour récupérer les produits à l'intérieur
-let cart = getCart();
-for (let productChoice of cart) {
-    //Récupération des autres données des articles du panier
-    fetch("http://localhost:3000/api/products/" + productChoice.id)
-    .then((response) => {
-        response.json()
-        .then((product) => {
+//Fonction pour l'affichage du panier uniquement si le panier n'est pas vide
+function cartDisplay() {    
+    if(cart != []) { 
+        //On parcours le panier pour récupérer les produits à l'intérieur
+        for (let productChoice of cart) {
+            //Récupération des autres données des articles du panier
+            fetch("http://localhost:3000/api/products/" + productChoice.id)
+            .then((response) => {
+                response.json()
+                .then((product) => {
+                    //On calcule le prix total
                     const totalProductPrice = parseInt(productChoice.quantity) * parseInt(product.price);
                     totalPrice.push(totalProductPrice);
                     //Affichage des articles dans le DOM
-                    document.getElementById("cart__items").innerHTML += `<article class="cart__item" data-id="${productChoice.id}" data-color="${productChoice.color}">
-                    <div class="cart__item__img">
-                    <img src="${product.imageUrl}" alt="Photographie d'un canapé">
-                    </div>
-                    <div class="cart__item__content">
-                    <div class="cart__item__content__description">
-                    <h2>${product.name}</h2>
-                    <p>${productChoice.color}</p>
-                    <p>${product.price}€</p>
-                    </div>
-                    <div class="cart__item__content__settings">
-                    <div class="cart__item__content__settings__quantity">
-                    <p>Qté : </p>
-                    <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${productChoice.quantity}">
-                    </div>
-                    <div class="cart__item__content__settings__delete">
-                    <p class="deleteItem">Supprimer</p>
-                    </div>
-                    </div>
-                    </div>
+                    document.getElementById("cart__items").innerHTML += 
+                    `<article class="cart__item" data-id="${productChoice.id}" data-color="${productChoice.color}">
+                        <div class="cart__item__img">
+                            <img src="${product.imageUrl}" alt="Photographie d'un canapé">
+                        </div>
+                        <div class="cart__item__content">
+                            <div class="cart__item__content__description">
+                                <h2>${product.name}</h2>
+                                <p>${productChoice.color}</p>
+                                <p>${product.price}€</p>
+                            </div>
+                            <div class="cart__item__content__settings">
+                                <div class="cart__item__content__settings__quantity">
+                                    <p>Qté : </p>
+                                    <input type="number" class="itemQuantity" name="itemQuantity" min="1" max="100" value="${productChoice.quantity}">
+                                </div>
+                                <div class="cart__item__content__settings__delete">
+                                    <p class="deleteItem">Supprimer</p>
+                                </div>
+                            </div>
+                        </div>
                     </article>`
                     //Ajout de la quantité totale d'articles du panier 
                     document.getElementById("totalQuantity").innerHTML = parseInt(totalProductInCart());
@@ -111,7 +111,7 @@ for (let productChoice of cart) {
                     document.getElementById("totalPrice").innerHTML = totalCartPrice();
                     //On récupère l'élément <input> dans le domaine 
                     let input = document.getElementsByClassName('itemQuantity');
-                    //On créé un tableau avec les éléments de <article> et la value de <input> afin de le parcourir et en récupérer les données
+                    //On créé un tableau avec les attributs de <article> et la value de <input> afin de le parcourir et en récupérer les données
                     Object.values(input).forEach(quantity => {
                         quantity.addEventListener('change', function() {
                             let article = quantity.closest("article");
@@ -123,7 +123,7 @@ for (let productChoice of cart) {
                     });
                     //On récupère l'élément <p>supprimer</p> dans le DOM 
                     let deleteButton = document.getElementsByClassName("deleteItem");
-                    //On créé un tableau avec les éléments de <article> afin de le parcourir et en récupérer les données
+                    //On créé un tableau avec les attributs de <article> afin de le parcourir et en récupérer les données
                     Object.values(deleteButton).forEach(deleteProduct => {
                         deleteProduct.addEventListener('click', function() {
                             let article = deleteProduct.closest("article");
@@ -132,14 +132,19 @@ for (let productChoice of cart) {
                             removeProduct(id, color);
                         })
                     });
-                                         
-        });
-    })
+                    
+                });
+            })
+        };
+    };
 };
 
-//---------VALIDATION ET ENVOI DU FORMULAIRE----------
-//Déclaration des variables et éléments du DOM pour formulaire contact clients
+//On appelle la fonction d'affichage du panier
+cartDisplay();
 
+//---------VALIDATION ET ENVOI DU FORMULAIRE----------
+
+//Déclaration des variables et éléments du DOM pour formulaire contact clients
 let firstName = document.getElementById("firstName");
 let lastName = document.getElementById("lastName");
 let address = document.getElementById("address");
@@ -149,19 +154,10 @@ let newOrder = document.getElementById("order");
 
 //Vérification des données du formulaire
 
-//RegExp pour prénom
-let firstNameRegExp = /^[a-zA-Z]{1,50}/g;
-
-//RegExp pour le nom
-let lastNameRegExp = firstNameRegExp;
-
-//RegExp pour la ville
-let cityRegExp = firstNameRegExp;
-
 //Validation de l'e-mail
-email.addEventListener('change', function() {
+email.addEventListener('input', function() {
     //RegExp pour email
-    let emailRegExp = /^[a-zA-Z][\w]{1,25}@[\w]{1,25}\.[a-z]{1,10}$/g;
+    let emailRegExp = /^[a-zA-Z][\w]{1,25}@[\w]{1,25}\.[a-z]{2,10}$/;
     //Test de la RegExp
     let testEmail = emailRegExp.test(email.value);
     let errorMessage = document.getElementById("emailErrorMsg");
@@ -169,60 +165,47 @@ email.addEventListener('change', function() {
         email.style.color = "red";
         errorMessage.innerHTML = "Adresse E-mail non valide" ;
     }
-    else {
+    else if(testEmail == true){
         email.style.color = "green";
         errorMessage.innerHTML = "";
     }
 });
 
+//Fonction pour la validation des infos prénom, nom et ville du formulaire
+function dataValidation(input) {
+    //Déclaration de la RegExp
+    let dataRegExp = /^[a-zA-Z]{1,50}/;
+    //Test de la RegExp
+    let testData = dataRegExp.test(input.value);
+    let errorMessage = input.nextElementSibling;
+    if(testData === false) {
+        input.style.color = "red";
+        errorMessage.innerHTML = "Caractère non autorisé";
+    }
+    else if(testData === true) {
+        input.style.color = "green";
+    }
+};
+
 //Validation du prénom
 firstName.addEventListener('change', function() {
-    let testFirstName = firstNameRegExp.test(firstName.value);
-    let errorMessage = document.getElementById("firstNameErrorMsg");
-    if(testFirstName === false) {
-        firstName.style.color = "red";
-        errorMessage.innerHTML = "Le prénom ne doit pas contenir de chiffre ou de caractères spéciaux";
-    }
-    else {
-        firstName.style.color = "green";
-        errorMessage.innerHTML = "";
-    }
-    console.log(testFirstName);
+    dataValidation(this);
 });
 
 //Validation du nom
 lastName.addEventListener('change', function() {
-    let testLastName = lastNameRegExp.test(lastName.value);
-    let errorMessage = document.getElementById("lastNameErrorMsg");
-    if(testLastName === false) {
-        lastName.style.color = "red";
-        errorMessage.innerHTML = "Le nom ne doit pas contenir de chiffre ou de caractères spéciaux";
-    }
-    else {
-        lastName.style.color = "green";
-        errorMessage.innerHTML = "";
-    }
+    dataValidation(this);
 });
 
-//Input adresse
+//Input adresse(non testée car multitude de format d'adresse en fonction du pays)
 address.addEventListener('change', function() {
-        address.style.color = "green";
+    address.style.color = "green";
 });
 
 //Validation de la ville
 city.addEventListener('change', function() {
-    let testCity = cityRegExp.test(city.value);
-    let errorMessage = document.getElementById("cityErrorMsg");
-    if(testCity === false) {
-        city.style.color = "red";
-        errorMessage.innerHTML = "La ville en doit pas contenir de chiffre ou de caractères spéciaux";
-    }
-    else {
-        city.style.color = "green";
-        errorMessage.innerHTML = "";
-    }
-})
-
+    dataValidation(this);
+});
 
 //Fonction pour la création de l'objet contact/produits
 function createOrderData() {   
@@ -236,7 +219,6 @@ function createOrderData() {
         city: city.value,
         email: email.value,
     };
-    console.log(contact);
     //On parcourt le panier pour trouver les "id"
     for(let productsList of cart) {
         let item = cart.find(p => p.id == productsList.id);
@@ -248,29 +230,33 @@ function createOrderData() {
             alert("Votre panier est vide");
         }
     };
-    console.log(products);
-    //On créé notre objet au format JSON (contenant les 2 tableaux contact et products liés) pour envoi à l'API
-    return orderData = JSON.stringify({contact, products});
+    //La fonction retourne un objet orderData(contenant les 2 tableaux contact et products liés) pour envoi à l'API
+    return orderData = ({contact, products});
 };
 //Au click sur le boutton commander on appelle la fonction createOrderData et on envoie notre objet dataOrder a l'API
 newOrder.addEventListener('click', (e) => {
     e.preventDefault();
-    createOrderData();
-
-    fetch("http://localhost:3000/api/products/order", {
-        method: "POST",
-        headers: {
-            "Content-type": "application/json",
-        },
-        body: orderData,
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        //On efface les données du localStorage
-        localStorage.clear();
-        //On renvoie vers la page de confirmation en lui ajoutant le numéro de commande
-        window.location.href = "./confirmation.html?id=" + data.orderId;
-    })
+    if(firstName.value == "" || lastName.value == "" || address.value == "" || city.value == "" || email.value == "") {
+        alert("Veuillez compléter le formulaire")
+    }
+    else {       
+        createOrderData();
+        
+        fetch("http://localhost:3000/api/products/order", {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify(orderData), //Envoi de l'objet orderData au format JSON
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            //On efface les données du localStorage
+            localStorage.clear();
+            //On renvoie vers la page de confirmation en lui ajoutant le numéro de commande renvoyé par l'API
+            window.location.href = "./confirmation.html?id=" + data.orderId;
+        })
+    }
 });
 
 

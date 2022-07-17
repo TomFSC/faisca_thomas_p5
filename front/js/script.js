@@ -13,12 +13,12 @@ fetch("http://localhost:3000/api/products")
                                                                                 <p class="productDescription">${product.description}</p>
                                                                             </article>
                                                                         </a>`
-                    }
+                    };
                 })
                 .catch((error) => {
                     alert("Produits momentanément indisponible")
                 });
-        }
+        };
     })
     .catch((error) => {
         alert("Le serveur ne répond pas")
