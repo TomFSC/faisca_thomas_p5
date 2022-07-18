@@ -45,7 +45,6 @@ function changeProductQuantity(id, color, newQuantity) {
     getCart(cart);
     if(newQuantity < 0 || newQuantity > 100) {
         alert("La quantitée doit être comprise entre 1 et 100");
-        window.location.href = "cart.html";
     }
     else if(newQuantity == 0) {
         removeProduct(id, color);
@@ -55,6 +54,7 @@ function changeProductQuantity(id, color, newQuantity) {
         if(foundSameProduct != undefined) {
             foundSameProduct.quantity = newQuantity;
             alert("La quantité a bien été modifiée");
+            window.location.href = "cart.html";
         }
         saveCart(cart);
     }
@@ -65,7 +65,7 @@ let totalPrice = [];
 //Fonction pour le calcul du prix total du panier
 function totalCartPrice() {    
     const calcTotal = (accumulator, currentValue) => accumulator + currentValue;
-    const total = totalPrice.reduce(calcTotal);
+    let total = totalPrice.reduce(calcTotal);
     return total;
 };
 
@@ -79,9 +79,6 @@ function cartDisplay() {
             .then((response) => {
                 response.json()
                 .then((product) => {
-                    //On calcule le prix total
-                    const totalProductPrice = parseInt(productChoice.quantity) * parseInt(product.price);
-                    totalPrice.push(totalProductPrice);
                     //Affichage des articles dans le DOM
                     document.getElementById("cart__items").innerHTML += 
                     `<article class="cart__item" data-id="${productChoice.id}" data-color="${productChoice.color}">
@@ -107,11 +104,16 @@ function cartDisplay() {
                     </article>`
                     //Ajout de la quantité totale d'articles du panier 
                     document.getElementById("totalQuantity").innerHTML = parseInt(totalProductInCart());
-                    //Ajout du prix total du panier
+                    //Calcul du prix total du panier
+                        //On calcule le prix total par article que l'on envoie dans le tableau totalPrice
+                    let totalProductPrice = parseInt(productChoice.quantity) * parseInt(product.price);
+                    totalPrice.push(totalProductPrice);
+                        //Ajout du prix total du panier
                     document.getElementById("totalPrice").innerHTML = totalCartPrice();
-                    //On récupère l'élément <input> dans le domaine 
+                    //Modification de la quantitée
+                        //On récupère l'élément <input> dans le domaine 
                     let input = document.getElementsByClassName('itemQuantity');
-                    //On créé un tableau avec les attributs de <article> et la value de <input> afin de le parcourir et en récupérer les données
+                        //On créé un tableau avec les attributs de <article> et la value de <input> afin de le parcourir et en récupérer les données
                     Object.values(input).forEach(quantity => {
                         quantity.addEventListener('change', function() {
                             let article = quantity.closest("article");
@@ -121,9 +123,10 @@ function cartDisplay() {
                             changeProductQuantity(id, color, newQuantity);
                         });
                     });
-                    //On récupère l'élément <p>supprimer</p> dans le DOM 
+                    //Suppression d'un produit
+                        //On récupère l'élément <p>supprimer</p> dans le DOM 
                     let deleteButton = document.getElementsByClassName("deleteItem");
-                    //On créé un tableau avec les attributs de <article> afin de le parcourir et en récupérer les données
+                        //On créé un tableau avec les attributs de <article> afin de le parcourir et en récupérer les données
                     Object.values(deleteButton).forEach(deleteProduct => {
                         deleteProduct.addEventListener('click', function() {
                             let article = deleteProduct.closest("article");
@@ -131,8 +134,7 @@ function cartDisplay() {
                             let color = article.getAttribute("data-color");
                             removeProduct(id, color);
                         })
-                    });
-                    
+                    });    
                 });
             })
         };
