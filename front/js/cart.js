@@ -45,6 +45,7 @@ function changeProductQuantity(id, color, newQuantity) {
     getCart(cart);
     if(newQuantity < 0 || newQuantity > 100) {
         alert("La quantitée doit être comprise entre 1 et 100");
+        location.reload();
     }
     else if(newQuantity == 0) {
         removeProduct(id, color);
@@ -70,8 +71,8 @@ function totalCartPrice() {
 };
 
 //Fonction pour l'affichage du panier uniquement si le panier n'est pas vide
-function cartDisplay() {    
-    if(cart != []) { 
+function cartDisplay() {   
+    if(cart != null) { 
         //On parcours le panier pour récupérer les produits à l'intérieur
         for (let productChoice of cart) {
             //Récupération des autres données des articles du panier
@@ -176,7 +177,7 @@ email.addEventListener('input', function() {
 //Fonction pour la validation des infos prénom, nom et ville du formulaire
 function dataValidation(input) {
     //Déclaration de la RegExp
-    let dataRegExp = /^[a-zA-Z]{1,50}/;
+    let dataRegExp = /^[a-zA-Z]{1,50}$/;
     //Test de la RegExp
     let testData = dataRegExp.test(input.value);
     let errorMessage = input.nextElementSibling;
@@ -186,6 +187,7 @@ function dataValidation(input) {
     }
     else if(testData === true) {
         input.style.color = "green";
+        errorMessage.innerHTML = "";
     }
 };
 
@@ -239,7 +241,7 @@ function createOrderData() {
 newOrder.addEventListener('click', (e) => {
     e.preventDefault();
     if(firstName.value == "" || lastName.value == "" || address.value == "" || city.value == "" || email.value == "") {
-        alert("Veuillez compléter le formulaire")
+        alert("Formulaire incomplet: Veuilez renseigner tous les éléments")
     }
     else {       
         createOrderData();
@@ -252,6 +254,9 @@ newOrder.addEventListener('click', (e) => {
             body: JSON.stringify(orderData), //Envoi de l'objet orderData au format JSON
         })
         .then((response) => response.json())
+        .catch((error) => {
+            alert("Un problème est survenu")
+        })
         .then((data) => {
             //On efface les données du localStorage
             localStorage.clear();
