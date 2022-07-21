@@ -134,10 +134,13 @@ function cartDisplay() {
                             let id = article.getAttribute("data-id");
                             let color = article.getAttribute("data-color");
                             removeProduct(id, color);
-                        })
+                        });
                     });    
-                });
+                })
             })
+            .catch((error) => {
+                alert("Désolé un problème est survenu")
+            });
         };
     };
 };
@@ -158,7 +161,7 @@ let newOrder = document.getElementById("order");
 //Vérification des données du formulaire
 
 //Validation de l'e-mail
-email.addEventListener('input', function() {
+let emailValidation = email.addEventListener('input', function() {
     //RegExp pour email
     let emailRegExp = /^[a-zA-Z][\w]{1,25}@[\w]{1,25}\.[a-z]{2,10}$/;
     //Test de la RegExp
@@ -167,38 +170,44 @@ email.addEventListener('input', function() {
     if(testEmail == false) {
         email.style.color = "red";
         errorMessage.innerHTML = "Adresse E-mail non valide" ;
+        return emailValidation = false;
     }
-    else if(testEmail == true){
+    else {
         email.style.color = "green";
         errorMessage.innerHTML = "";
+        return emailValidation = true;
     }
 });
 
 //Fonction pour la validation des infos prénom, nom et ville du formulaire
 function dataValidation(input) {
     //Déclaration de la RegExp
-    let dataRegExp = /^[a-zA-Z]{1,50}$/;
+    let dataRegExp = /^[a-zA-Z-\s]{1,50}$/;
     //Test de la RegExp
     let testData = dataRegExp.test(input.value);
     let errorMessage = input.nextElementSibling;
     if(testData === false) {
         input.style.color = "red";
         errorMessage.innerHTML = "Caractère non autorisé";
+        return false;
     }
-    else if(testData === true) {
+    else {
         input.style.color = "green";
         errorMessage.innerHTML = "";
+        return true;
     }
 };
 
 //Validation du prénom
+let firstNameValidation;
 firstName.addEventListener('change', function() {
-    dataValidation(this);
+    firstNameValidation = dataValidation(this);
 });
 
 //Validation du nom
+let lastNameValidation;
 lastName.addEventListener('change', function() {
-    dataValidation(this);
+    lastNameValidation =  dataValidation(this);
 });
 
 //Input adresse(non testée car multitude de format d'adresse en fonction du pays)
@@ -207,8 +216,9 @@ address.addEventListener('change', function() {
 });
 
 //Validation de la ville
+let cityValidation;
 city.addEventListener('change', function() {
-    dataValidation(this);
+    cityValidation = dataValidation(this);
 });
 
 //Fonction pour la création de l'objet contact/produits
@@ -240,10 +250,10 @@ function createOrderData() {
 //Au click sur le boutton commander on appelle la fonction createOrderData et on envoie notre objet dataOrder a l'API
 newOrder.addEventListener('click', (e) => {
     e.preventDefault();
-    if(firstName.value == "" || lastName.value == "" || address.value == "" || city.value == "" || email.value == "") {
-        alert("Formulaire incomplet: Veuilez renseigner tous les éléments")
+    if(!firstNameValidation || !lastNameValidation || !cityValidation || !emailValidation) {
+        alert("Le formulaire est incomplet ou les données saisies ne sont pas valide");
     }
-    else {       
+    else {     
         createOrderData();
         
         fetch("http://localhost:3000/api/products/order", {
@@ -255,7 +265,7 @@ newOrder.addEventListener('click', (e) => {
         })
         .then((response) => response.json())
         .catch((error) => {
-            alert("Un problème est survenu")
+            alert("Désolé un problème est survenu");
         })
         .then((data) => {
             //On efface les données du localStorage
